@@ -53,8 +53,20 @@ class ProductController extends Controller
             'description' => $request->description,
             'image_url' => $imagePath, // Guardamos la ruta de la foto
         ]);
-
-        // 4. Redirigir al listado con un mensaje de éxito
-        return redirect()->route('products.index');
+    
     }
-}
+        public function show(Product $product)
+        {
+            // Buscamos productos similares para la sección "También te podría gustar"
+            $relatedProducts = Product::where('category_id', $product->category_id)
+                ->where('id', '!=', $product->id)
+                ->take(4)
+                ->get();
+
+            return Inertia::render('ProductDetail', [
+                'product' => $product->load('category'),
+                'relatedProducts' => $relatedProducts
+            ]);
+        }
+
+    }

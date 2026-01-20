@@ -64,6 +64,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/admin/orders', [OrderController::class, 'adminIndex'])->name('admin.orders.index');
 
+    Route::get('/product/{product}', [ProductController::class, 'show'])->name('product.show');
 
     Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
     // --- Gestión de Perfil (Breeze) ---

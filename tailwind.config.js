@@ -13,8 +13,19 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                sans: ['Inter', ...defaultTheme.fontFamily.sans],
+                display: ['Oswald', 'sans-serif'], // Fuente para títulos agresivos
+                body: ['Inter', 'sans-serif'],
             },
+            colors: {
+                // Colores extraídos de tu diseño React
+                primary: '#e60000', // Rojo intenso
+                background: '#09090b', // Negro casi puro
+                surface: '#18181b', // Gris oscuro para tarjetas
+            },
+            backgroundImage: {
+                'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+            }
         },
     },
 

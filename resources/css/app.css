@@ -1,3 +1,58 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.shimmer-text {
+  /* Definimos un gradiente que va de blanco a ROJO VELOCITY y vuelve a blanco */
+  background: linear-gradient(
+    110deg,
+    #ffffff 35%,   /* Blanco inicial */
+    #e60000 50%,   /* El destello rojo justo en el medio */
+    #ffffff 65%    /* Blanco final */
+  );
+  /* Hacemos que el fondo sea el doble de ancho para poder moverlo */
+  background-size: 200% auto;
+  
+  /* Estas propiedades mágicas recortan el fondo a la forma de las letras */
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  /* La animación que mueve el fondo */
+  animation: shimmer 4s linear infinite;
+}
+
+/* Animación del movimiento */
+@keyframes shimmer {
+  from {
+    background-position: 0% center;
+  }
+  to {
+    background-position: -200% center;
+  }
+}
+
+/* EFECTO NEÓN (Glow) */
+.neon-shadow:hover {
+    box-shadow: 0 0 20px rgba(230, 0, 0, 0.6), 0 0 40px rgba(230, 0, 0, 0.3);
+}
+
+/* EFECTO CRISTAL (Glassmorphism avanzado) */
+.glass-card {
+    background: rgba(24, 24, 27, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); } /* Se mueve exactamente la mitad (el tamaño de una cinta completa) */
+}
+
+.animate-marquee {
+  display: flex;
+  /* IMPORTANTE: width: max-content asegura que el contenedor mida lo que miden las dos cintas sumadas */
+  width: max-content; 
+  animation: marquee 60s linear infinite; /* 60s para que sea más lento y legible */
+  will-change: transform;
+}

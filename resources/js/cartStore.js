@@ -1,28 +1,62 @@
-import { reactive } from 'vue';
+import { reactive, watch } from 'vue';
+
+// 1. Intentamos recuperar el carrito guardado del navegador
+const savedCart = JSON.parse(localStorage.getItem('velocity_cart')) || [];
 
 export const cart = reactive({
-    items: JSON.parse(localStorage.getItem('cart')) || [],
-    
+    items: savedCart,
+
+    // AÑADIR (Con lógica de agrupación)
     add(product) {
-        const item = this.items.find(i => i.id === product.id);
-        if (item) {
-            item.quantity++;
+        // Buscamos si ya existe este producto EXACTO (mismo ID y misma Talla)
+        const existingItem = this.items.find(item => 
+            item.id === product.id && item.selectedSize === product.selectedSize
+        );
+
+        if (existingItem) {
+            // Si ya existe, solo sumamos 1 a la cantidad
+            existingItem.quantity++;
         } else {
-            this.items.push({ ...product, quantity: 1 });
+            // Si es nuevo, lo agregamos con cantidad 1
+            this.items.push({ 
+                ...product, 
+                quantity: 1 
+            });
         }
-        this.save();
     },
 
-    remove(productId) {
-        this.items = this.items.filter(i => i.id !== productId);
-        this.save();
+    // QUITAR (La corrección importante)
+    remove(itemToRemove) {
+        // Filtramos la lista para dejar SOLO los que NO sean el item a borrar
+        this.items = this.items.filter(item => item !== itemToRemove);
     },
 
-    save() {
-        localStorage.setItem('cart', JSON.stringify(this.items));
+    // AUMENTAR CANTIDAD (+)
+    increase(item) {
+        item.quantity++;
     },
 
-    get totalItems() {
-        return this.items.reduce((sum, item) => sum + item.quantity, 0);
+    // DISMINUIR CANTIDAD (-)
+    decrease(item) {
+        if (item.quantity > 1) {
+            item.quantity--;
+        } else {
+            // Si baja de 1, preguntamos o lo borramos directo
+            this.remove(item);
+        }
+    },
+
+    // LIMPIAR TODO
+    clear() {
+        this.items = [];
     }
 });
+
+// 2. Guardar automáticamente cualquier cambio en el navegador
+watch(
+    () => cart.items,
+    (newItems) => {
+        localStorage.setItem('velocity_cart', JSON.stringify(newItems));
+    },
+    { deep: true }
+);

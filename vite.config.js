@@ -17,4 +17,11 @@ export default defineConfig({
             },
         }),
     ],
+
+    server: {
+        host: true,
+        hmr: {
+            host: '192.168.1.65', // <--- Tu IP exacta
+        },
+    },
 });

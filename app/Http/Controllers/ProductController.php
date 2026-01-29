@@ -10,13 +10,34 @@ use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
-    public function index()
-    {
-        return Inertia::render('Products/Index', [
-            'products' => Product::with('category')->latest()->get(),
-            'categories' => Category::all()
-        ]);
+public function index(Request $request)
+{
+    // Iniciamos la consulta de productos
+    $query = Product::query()->with('category');
+
+    // 1. Filtro por Categoría (Si seleccionan "Hombre", "Mujer", etc.)
+    if ($request->has('category')) {
+        $query->whereHas('category', function ($q) use ($request) {
+            $q->where('name', $request->category);
+        });
     }
+
+    // 2. Filtro por Precio Máximo (Para la barra deslizante)
+    if ($request->has('price')) {
+        $query->where('price', '<=', $request->price);
+    }
+
+    // 3. Filtro por Buscador (Si escriben en la barra de arriba)
+    if ($request->has('search')) {
+        $query->where('name', 'like', '%' . $request->search . '%');
+    }
+
+    return Inertia::render('Catalog', [
+        'products' => $query->latest()->get(),
+        'categories' => Category::all(), // Enviamos las categorías para el sidebar
+        'filters' => $request->only(['category', 'price', 'search']), // Para mantener los filtros activos en la vista
+    ]);
+}
 
     public function create()
     {

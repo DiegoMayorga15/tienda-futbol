@@ -64,6 +64,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/admin/orders', [OrderController::class, 'adminIndex'])->name('admin.orders.index');
 
+
+    // Ruta para ver el catálogo completo
+    Route::get('/catalog', [ProductController::class, 'index'])->name('catalog.index');
+
     Route::get('/product/{product}', [ProductController::class, 'show'])->name('product.show');
 
     Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');

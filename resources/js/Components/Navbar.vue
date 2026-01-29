@@ -18,12 +18,28 @@ defineEmits(['openCart']);
                 />
             </Link>
             
-            <nav class="hidden md:flex items-center gap-10">
-                <Link :href="route('welcome')" class="text-sm font-bold text-white hover:text-primary tracking-widest transition-colors duration-200">HOMBRE</Link>
-                <Link :href="route('welcome')" class="text-sm font-bold text-white hover:text-primary tracking-widest transition-colors duration-200">MUJER</Link>
-                <Link :href="route('welcome')" class="text-sm font-bold text-primary hover:text-white tracking-widest transition-colors duration-200">OFERTAS</Link>
-            </nav>
+           <nav class="hidden md:flex items-center gap-10">
+                <Link 
+                    :href="route('catalog.index', { category: 'Hombre' })" 
+                    class="text-sm font-bold text-white hover:text-primary tracking-widest transition-colors duration-200"
+                >
+                    HOMBRE
+                </Link>
 
+                <Link 
+                    :href="route('catalog.index', { category: 'Mujer' })" 
+                    class="text-sm font-bold text-white hover:text-primary tracking-widest transition-colors duration-200"
+                >
+                    MUJER
+                </Link>
+
+                <Link 
+                    :href="route('catalog.index', { price: 100000 })" 
+                    class="text-sm font-bold text-primary hover:text-white tracking-widest transition-colors duration-200"
+                >
+                    OFERTAS
+                </Link>
+            </nav>
             <div class="flex items-center gap-6">
                 <div class="hidden lg:flex relative group">
                     <input 

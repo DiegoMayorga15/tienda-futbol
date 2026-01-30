@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use App\Models\Category;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -34,6 +35,11 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            // AGREGAMOS ESTO: Enviamos el menú completo a todo el sitio
+            'categories' => Category::whereNull('parent_id') // Solo los padres
+                ->with('children') // Traer a sus hijos
+                ->where('is_active', true)
+                ->get(),
         ];
     }
 }

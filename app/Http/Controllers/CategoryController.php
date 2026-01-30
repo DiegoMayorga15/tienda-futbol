@@ -9,11 +9,21 @@ use Inertia\Inertia;
 
 class CategoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Ahora sí enviamos las categorías reales a la vista
-        return Inertia::render('Categories', [
-            'categories' => Category::all()
+        $products = Product::query();
+
+        // Filtros...
+        if ($request->has('category')) {
+            $slug = $request->input('category');
+            $category = Category::where('slug', $slug)->first();
+            if ($category) {
+                $products->where('category_id', $category->id);
+            }
+        }
+
+        return Inertia::render('Catalog', [ // Verifica que diga 'Catalog' y no 'Catalog/Index'
+            'products' => $products->get(),
         ]);
     }
 

@@ -1,169 +1,148 @@
 <script setup>
-import { ref, watch } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import Navbar from '@/Components/Navbar.vue';
 import CartDrawer from '@/Components/CartDrawer.vue';
 import { cart } from '@/cartStore.js';
 
+// --- CAMBIO CLAVE: Valor por defecto para evitar errores ---
 const props = defineProps({
-    products: Array,
-    categories: Array,
-    filters: Object
+    products: {
+        type: Array,
+        default: () => [] // Si no llegan productos, usa un array vacío
+    },
 });
 
+const page = usePage();
+// Protección: Si categories no llega, usa array vacío
+const categories = computed(() => page.props.categories || []);
+
 const isCartOpen = ref(false);
-const price = ref(props.filters.price || 500000); 
 
 const addToCart = (product) => {
     cart.add(product);
     isCartOpen.value = true;
 };
 
-const filterProducts = (categoryName) => {
-    router.get(route('catalog.index'), { 
-        category: categoryName,
-        price: price.value 
-    }, { preserveState: true, preserveScroll: true });
+const formatPrice = (value) => {
+    // Protección: Si el precio no es un número, retorna 0
+    if (!value) return '$0';
+    return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        maximumFractionDigits: 0
+    }).format(value);
 };
-
-let timeout = null;
-watch(price, (newPrice) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => {
-        router.get(route('catalog.index'), { 
-            ...props.filters,
-            price: newPrice 
-        }, { preserveState: true, preserveScroll: true, replace: true });
-    }, 500);
-});
 </script>
 
 <template>
     <Head title="Catálogo" />
 
-    <div class="min-h-screen bg-white text-gray-900 font-sans selection:bg-primary selection:text-white pb-20">
+    <div class="min-h-screen bg-white text-gray-900 font-sans selection:bg-primary selection:text-white">
+        
         <Navbar @openCart="isCartOpen = true" />
 
-        <div class="mx-auto max-w-[1440px] px-6 py-8 mt-20">
-            <div class="flex items-center gap-2 py-4 text-xs font-bold uppercase tracking-widest text-gray-400 mb-8">
-                <Link :href="route('welcome')" class="hover:text-primary transition-colors">Inicio</Link>
-                <span>/</span>
-                <span class="text-black">Catálogo</span>
-            </div>
+        <div class="pt-32 pb-10 bg-gray-50 px-6 text-center border-b border-gray-200">
+            <h1 class="font-display font-black text-4xl md:text-5xl italic tracking-tighter uppercase">
+                Catálogo <span class="text-primary">2026</span>
+            </h1>
+            <p class="text-xs font-bold uppercase tracking-[0.3em] text-gray-400 mt-2">
+                Explora nuestra colección completa
+            </p>
+        </div>
 
-            <div class="flex flex-col lg:flex-row gap-12">
-                
-                <aside class="w-full lg:w-64 flex-none space-y-10">
-                    <div>
-                        <div class="flex items-center justify-between border-b-2 border-black pb-4 mb-6">
-                            <h2 class="text-lg font-black uppercase tracking-wide">Filtros</h2>
-                            <Link :href="route('catalog.index')" class="text-[10px] font-bold text-gray-400 hover:text-primary uppercase tracking-widest">
-                                Limpiar
+        <div class="max-w-[1600px] mx-auto px-6 py-12 flex flex-col lg:flex-row gap-12">
+            
+            <aside class="w-full lg:w-64 flex-shrink-0 space-y-8">
+                <div>
+                    <h3 class="font-black italic text-lg uppercase mb-4 border-b-2 border-black pb-2">Categorías</h3>
+                    <ul class="space-y-2">
+                        <li>
+                            <Link :href="route('catalog.index')" 
+                                  class="text-sm font-bold uppercase text-gray-500 hover:text-primary transition-colors flex items-center gap-2">
+                                <span class="w-1 h-1 bg-gray-300 rounded-full"></span> Ver Todo
                             </Link>
-                        </div>
+                        </li>
                         
-                        <div class="space-y-4 mb-8">
-                            <h3 class="text-sm font-bold uppercase text-black">Categoría</h3>
-                            <div class="space-y-3">
-                                <label v-for="cat in categories" :key="cat.id" class="flex items-center gap-3 cursor-pointer group">
-                                    <input 
-                                        type="radio" 
-                                        name="category"
-                                        :checked="filters.category === cat.name"
-                                        @change="filterProducts(cat.name)"
-                                        class="size-4 rounded-full bg-gray-100 border-gray-300 checked:bg-primary checked:border-primary focus:ring-0 text-primary" 
-                                    />
-                                    <span class="text-xs font-bold uppercase text-gray-500 group-hover:text-black transition-colors">
-                                        {{ cat.name }}
-                                    </span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-sm font-bold uppercase text-black">Precio Máximo</h3>
-                                <span class="text-sm font-bold text-primary">${{ price.toLocaleString() }}</span>
-                            </div>
-                            <input 
-                                type="range" 
-                                min="0" 
-                                max="1000000" 
-                                step="10000"
-                                v-model="price"
-                                class="w-full h-1 bg-gray-200 rounded-full appearance-none accent-primary cursor-pointer hover:accent-black transition-all" 
-                            />
-                        </div>
-                    </div>
-                </aside>
-
-                <div class="flex-1">
-                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 pb-4 border-b border-gray-100 gap-4">
-                        <p class="text-sm font-bold uppercase tracking-widest text-gray-500">
-                            Mostrando <span class="text-black">{{ products.length }}</span> Resultados
-                        </p>
-                    </div>
-
-                    <div v-if="products.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                        <Link 
-                            v-for="(product, index) in products" 
-                            :key="product.id" 
-                            :href="route('product.show', product.id)"
-                            class="group relative flex flex-col bg-white border border-gray-100 rounded-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden"
-                        >
-                            <div class="relative aspect-[4/5] overflow-hidden bg-gray-100">
-                                <div class="absolute top-0 left-0 z-10 bg-primary text-white text-[10px] font-bold px-3 py-1 uppercase tracking-widest">
-                                    {{ product.category?.name || 'Pro' }}
-                                </div>
+                        <li v-for="cat in categories" :key="cat.id">
+                            <details class="group">
+                                <summary class="list-none flex justify-between items-center cursor-pointer text-sm font-bold uppercase text-gray-800 hover:text-primary py-1">
+                                    {{ cat.name }}
+                                    <span v-if="cat.children && cat.children.length" class="material-symbols-outlined text-xs transition-transform group-open:rotate-180">expand_more</span>
+                                </summary>
                                 
-                                <img 
-                                    :src="product.image_url && product.image_url !== 'null' 
-                                        ? '/storage/' + product.image_url 
-                                        : 'https://images.unsplash.com/photo-1511886929837-354d827aae26?q=80&w=800&auto=format&fit=crop'"
-                                    class="w-full h-full object-cover mix-blend-multiply group-hover:scale-105 transition-transform duration-700" 
-                                    :alt="product.name" 
-                                />
-                                
-                                <div class="absolute bottom-0 left-0 w-full translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                                    <button 
-                                        @click.prevent="addToCart(product)"
-                                        class="w-full bg-black text-white font-bold text-xs py-4 uppercase tracking-widest hover:bg-primary transition-colors"
-                                    >
-                                        Añadir al Carrito
-                                    </button>
-                                </div>
+                                <ul class="pl-4 mt-1 space-y-1 border-l border-gray-200 ml-1" v-if="cat.children && cat.children.length">
+                                    <li v-for="child in cat.children" :key="child.id">
+                                        <Link :href="route('catalog.index', { category: child.slug })" 
+                                              class="text-xs font-semibold text-gray-500 hover:text-black uppercase block py-1">
+                                            {{ child.name }}
+                                        </Link>
+                                    </li>
+                                </ul>
+                            </details>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+
+            <main class="flex-1">
+                <div class="flex justify-between items-center mb-8 pb-4 border-b border-gray-100">
+                    <span class="text-xs font-bold uppercase text-gray-500">{{ products?.length || 0 }} Productos encontrados</span>
+                </div>
+
+                <div v-if="products && products.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-12">
+                    <Link 
+                        v-for="product in products" 
+                        :key="product.id" 
+                        :href="route('product.show', product.id)"
+                        class="group block relative"
+                    >
+                        <div class="aspect-[4/5] bg-gray-100 rounded-lg overflow-hidden relative mb-4 shadow-sm group-hover:shadow-xl transition-all duration-500 group-hover:-translate-y-1">
+                            <div class="absolute top-3 left-3 bg-black text-white text-[9px] font-black px-3 py-1 uppercase z-10 shadow-lg tracking-widest">
+                                Nuevo
                             </div>
                             
-                            <div class="p-5 flex flex-col h-full bg-white relative z-20">
-                                <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 group-hover:text-primary transition-colors">
-                                    {{ product.brand || 'VELOCITY' }}
-                                </span>
-                                <h3 class="text-base font-bold uppercase text-gray-900 leading-tight mb-4 h-10 overflow-hidden">
-                                    {{ product.name }}
-                                </h3>
-                                <div class="mt-auto flex items-center justify-between pt-4 border-t border-gray-100">
-                                    <span class="text-lg font-black text-gray-900">${{ product.price.toLocaleString() }}</span>
-                                    <div class="flex text-yellow-400 text-xs">
-                                        <span class="material-symbols-outlined text-[16px]">star</span>
-                                        <span class="text-gray-400 font-bold ml-1 text-[10px] mt-0.5">4.8</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </Link>
-                    </div>
-                    
-                    <div v-else class="text-center py-20 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                        <span class="material-symbols-outlined text-6xl text-gray-300 mb-4">search_off</span>
-                        <h3 class="text-xl font-bold text-gray-900 uppercase">Sin resultados</h3>
-                        <p class="text-gray-500 text-sm mt-2">Intenta ajustar los filtros de precio o categoría.</p>
-                        <Link :href="route('catalog.index')" class="mt-6 inline-block bg-black text-white px-6 py-2 rounded font-bold uppercase text-xs hover:bg-primary transition-colors">
-                            Limpiar filtros
-                        </Link>
-                    </div>
+                            <img 
+                                :src="product.image_url && product.image_url !== 'null' ? '/storage/' + product.image_url : 'https://images.unsplash.com/photo-1511886929837-354d827aae26?q=80&w=800&fit=crop'"
+                                class="w-full h-full object-cover mix-blend-multiply transition-transform duration-700 group-hover:scale-110"
+                                alt="Producto"
+                            />
+
+                            <button 
+                                @click.prevent="addToCart(product)" 
+                                class="absolute bottom-3 right-3 bg-white/90 backdrop-blur text-black size-10 rounded-full flex items-center justify-center shadow-lg hover:bg-primary hover:text-white transition-all duration-300 hover:scale-110"
+                            >
+                                <span class="material-symbols-outlined text-lg">shopping_bag</span>
+                            </button>
+                        </div>
+
+                        <div>
+                            <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">{{ product.brand || 'DPORTS' }}</p>
+                            <h3 class="text-gray-900 font-black text-sm uppercase leading-tight mb-2 group-hover:text-primary transition-colors truncate">
+                                {{ product.name }}
+                            </h3>
+                            <span class="text-lg font-bold text-gray-900 border-b-2 border-primary/20 pb-0.5">
+                                {{ formatPrice(product.price) }}
+                            </span>
+                        </div>
+                    </Link>
                 </div>
-            </div>
+
+                <div v-else class="py-20 text-center">
+                    <span class="material-symbols-outlined text-6xl text-gray-200 mb-4">sentiment_dissatisfied</span>
+                    <h3 class="text-xl font-black italic uppercase text-gray-400">No encontramos productos</h3>
+                    <p class="text-gray-500 text-sm mt-2">Intenta cambiar los filtros o busca otra categoría.</p>
+                </div>
+            </main>
         </div>
-        
+
         <CartDrawer :isOpen="isCartOpen" @close="isCartOpen = false" />
+        
+        <footer class="bg-black text-white py-12 border-t border-gray-800 mt-auto">
+            <div class="max-w-[1440px] mx-auto px-6 text-center">
+                <h3 class="font-display font-black text-3xl italic tracking-tighter mb-4">D<span class="text-primary">PORTS</span></h3>
+                <p class="text-gray-500 text-xs uppercase tracking-[0.3em]">Todos los derechos reservados &copy; 2026</p>
+            </div>
+        </footer>
     </div>
 </template>
